@@ -83,58 +83,61 @@ params.aligned_lane_prefix = "grch38-aligned"
 params.cpus = 1
 params.memory = 1024
 
-params.download.container_version = '1.0.0'
-params.download.song_url = parms.song_url
-params.download.score_url = parms.score_url
-params.download.api_token = params.api_token
-params.download.cpus = params.cpu
-params.download.memory = params.memory
+params.download = [
+    "container_version": 'latest',
+    "song_url": params.song_url,
+    "score_url": params.score_url,
+    "api_token": params.api_token,
+    "cpus": params.cpus,
+    "mem": params.memory
+]
 
-params.preprocess.container_version = '0.1.3'
-params.preprocess.reads_max_discard_fraction = 0.05
-params.preprocess.cpus = params.cpu
-params.preprocess.memory = params.memory
 
-params.align.container_version = '0.1.2'
-params.align.cpus = params.cpu
-params.align.memory = params.memory
+// params.preprocess.container_version = '0.1.3'
+// params.preprocess.reads_max_discard_fraction = 0.05
+// params.preprocess.cpus = params.cpu
+// params.preprocess.memory = params.memory
 
-params.merge.container_version = '0.1.3'
-params.merge.output_format = ['cram'] // options are ['cram', 'bam']
-params.merge.markdup = 'OPTIONAL_INPUT'
-params.merge.lossy = 'OPTIONAL_INPUT'
-params.merge.memory = params.memory
-params.merge.cpus = params.cpu
+// params.align.container_version = '0.1.2'
+// params.align.cpus = params.cpu
+// params.align.memory = params.memory
 
-params.upload.container_version = '1.0.0'
-params.upload.song_url = parms.song_url
-params.upload.score_url = parms.score_url
-params.upload.api_token = params.api_token
-params.upload.cpus = params.cpu
-params.upload.memory = params.memory
+// params.merge.container_version = '0.1.3'
+// params.merge.output_format = ['cram'] // options are ['cram', 'bam']
+// params.merge.markdup = 'OPTIONAL_INPUT'
+// params.merge.lossy = 'OPTIONAL_INPUT'
+// params.merge.memory = params.memory
+// params.merge.cpus = params.cpu
+
+// params.upload.container_version = 'latest'
+// params.upload.song_url = parms.song_url
+// params.upload.score_url = parms.score_url
+// params.upload.api_token = params.api_token
+// params.upload.cpus = params.cpu
+// params.upload.memory = params.memory
 
 // Include all modules and pass params
-include songScoreDownload as download from 'data-processing/modules/song_score_download' params(params.download)                                                                             
-include seqDataToLaneBam as preprocess from 'dna-seq-processing/modules/seq_data_to_lane_bam' params(params.preprocess)
-include bwaMemAligner as align from 'dna-seq-processing/modules/bwa_mem_aligner.nf' params(params.align)
-include bamMergeSortMarkdup as merge from 'dna-seq-processing/modules/bam_merge_sort_markdup.nf' params(params.merge)
-include songScoreUpload as upload from 'data-processing/modules/song_score_upload' params(params.upload)
+include songScoreDownload as download from './data-processing/modules/song_score_download' params(params = params.download)                                                                             
+// include seqDataToLaneBam as preprocess from './dna-seq-processing/modules/seq_data_to_lane_bam' params(params.preprocess)
+// include bwaMemAligner as align from './dna-seq-processing/modules/bwa_mem_aligner.nf' params(params.align)
+// include bamMergeSortMarkdup as merge from './dna-seq-processing/modules/bam_merge_sort_markdup.nf' params(params.merge)
+// include songScoreUpload as upload from './data-processing/modules/song_score_upload' params(params.upload)
 
-ref_gnome = Channel.fromPath("${reference}/*").collect()
+ref_gnome = Channel.fromPath("${params.reference_dir}/*").collect()
 
 workflow {
     // download files and metadata from song/score (A1)
     download(params.study_id, params.analysis_id)
 
-    // run files through preprocess step (split to lanes)
-    preprocess(download.out)
+    // // run files through preprocess step (split to lanes)
+    // preprocess(download.out)
 
-    // align each lane independently
-    align(preprocess.out, ref_gnome, params.aligned_lane_prefix)
+    // // align each lane independently
+    // align(preprocess.out, ref_gnome, params.aligned_lane_prefix)
 
-    // collect aligned lanes for merge and markdup
-    merge(align.out.collect(), ref_gnome, params.aligned_basename)
+    // // collect aligned lanes for merge and markdup
+    // merge(align.out.collect(), ref_gnome, params.aligned_basename)
 
-    // upload aligned file and metadata to song/score (A2)
-    upload(merge.out)
+    // // upload aligned file and metadata to song/score (A2)
+    // upload(merge.out)
 }
