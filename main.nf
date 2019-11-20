@@ -32,7 +32,8 @@ General Parameters (with defaults):
 Download Parameters (object):
 --download
 {
-    container_version                   docker container version, defaults set below
+    song_container_version              song docker container version, defaults set below
+    score_container_version             score docker container version, defaults set below
     song_url                            song url for download process (defaults to main song_url param)
     score_url                           score url for download process (defaults to main score_url param)
     api_token                           song/score API token for download process (defaults to main api_token param)
@@ -68,7 +69,8 @@ Merge Parameters (object):
 Upload Parameters (object):
 --upload
 {
-    container_version                   docker container version, defaults set below
+    song_container_version              song docker container version, defaults set below
+    score_container_version             score docker container version, defaults set below
     song_url                            song url for upload process (defaults to main song_url param)
     score_url                           score url for upload process (defaults to main score_url param)
     api_token                           song/score API token for upload process (defaults to main api_token param)
@@ -78,25 +80,29 @@ Upload Parameters (object):
 
 */
 
-params.reference_dir = "reference"
-params.aligned_lane_prefix = "grch38-aligned"
+params.reference_dir = 'reference'
+params.aligned_lane_prefix = 'grch38-aligned'
 params.cpus = 1
 params.memory = 1024
 
 params.download = [
-    "container_version": 'latest',
-    "song_url": params.song_url,
-    "score_url": params.score_url,
-    "api_token": params.api_token,
-    "cpus": params.cpus,
-    "mem": params.memory
+    'song_container_version': 'latest',
+    'score_container_version': 'latest',
+    'song_url': params.song_url,
+    'score_url': params.score_url,
+    'api_token': params.api_token,
+    'cpus': params.cpus,
+    'mem': params.memory,
+    *:(params.download ?: [:])
 ]
 
-
-// params.preprocess.container_version = '0.1.3'
-// params.preprocess.reads_max_discard_fraction = 0.05
-// params.preprocess.cpus = params.cpu
-// params.preprocess.memory = params.memory
+params.preprocess = [
+    'container_version': '0.1.3',
+    'reads_max_discard_fraction': 0.05,
+    'cpus': params.cpus,
+    'mem': params.memory,
+    *:(params.preprocess ?: [:])
+]
 
 // params.align.container_version = '0.1.2'
 // params.align.cpus = params.cpu
@@ -117,8 +123,8 @@ params.download = [
 // params.upload.memory = params.memory
 
 // Include all modules and pass params
-include songScoreDownload as download from './data-processing/modules/song_score_download' params(params = params.download)                                                                             
-// include seqDataToLaneBam as preprocess from './dna-seq-processing/modules/seq_data_to_lane_bam' params(params.preprocess)
+include song_score_download as download from './data-processing/modules/song_score_download' params(params = params.download)                                                                             
+include preprocess from './dna-seq-processing/modules/seq_data_to_lane_bam' params(params.preprocess)
 // include bwaMemAligner as align from './dna-seq-processing/modules/bwa_mem_aligner.nf' params(params.align)
 // include bamMergeSortMarkdup as merge from './dna-seq-processing/modules/bam_merge_sort_markdup.nf' params(params.merge)
 // include songScoreUpload as upload from './data-processing/modules/song_score_upload' params(params.upload)
@@ -129,8 +135,10 @@ workflow {
     // download files and metadata from song/score (A1)
     download(params.study_id, params.analysis_id)
 
-    // // run files through preprocess step (split to lanes)
-    // preprocess(download.out)
+    // run files through preprocess step (split to lanes)
+    preprocess(download.out)
+
+    preprocess.out.view()
 
     // // align each lane independently
     // align(preprocess.out, ref_gnome, params.aligned_lane_prefix)
