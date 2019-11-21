@@ -88,7 +88,7 @@ params.aligned_lane_prefix = 'grch38-aligned'
 params.cpus = 1
 params.memory = 1024
 
-params.download = [
+download_params = [
     'song_container_version': 'latest',
     'score_container_version': 'latest',
     'song_url': params.song_url,
@@ -99,7 +99,7 @@ params.download = [
     *:(params.download ?: [:])
 ]
 
-params.preprocess = [
+preprocess_params = [
     'container_version': '0.1.5.0',
     'reads_max_discard_fraction': 0.05,
     'cpus': params.cpus,
@@ -107,14 +107,14 @@ params.preprocess = [
     *:(params.preprocess ?: [:])
 ]
 
-params.align = [
+align_params = [
     'container_version': '0.1.2',
     'cpus': params.cpus,
     'mem': params.memory,
     *:(params.align ?: [:])
 ]
 
-params.merge = [
+merge_params = [
     'container_version': '0.1.4',
     'output_format': ['cram'],
     'markdup': 'OPTIONAL_INPUT',
@@ -132,10 +132,10 @@ params.merge = [
 // params.upload.memory = params.memory
 
 // Include all modules and pass params
-include song_score_download as download from './data-processing/modules/song_score_download' params(params = params.download)                                                                             
-include preprocess from './dna-seq-processing/modules/seq_data_to_lane_bam' params(params.preprocess)
-include bwaMemAligner as align from './dna-seq-processing/modules/bwa_mem_aligner.nf' params(params.align)
-include bamMergeSortMarkdup as merge from './dna-seq-processing/modules/bam_merge_sort_markdup.nf' params(params.merge)
+include song_score_download as download from './data-processing/modules/song_score_download' params(download_params)                                                                             
+include preprocess from './dna-seq-processing/modules/seq_data_to_lane_bam' params(preprocess_params)
+include bwaMemAligner as align from './dna-seq-processing/modules/bwa_mem_aligner.nf' params(align_params)
+include bamMergeSortMarkdup as merge from './dna-seq-processing/modules/bam_merge_sort_markdup.nf' params(merge_params)
 // include songScoreUpload as upload from './data-processing/modules/song_score_upload' params(params.upload)
 
 ref_gnome = Channel.fromPath("${params.reference_dir}/*").collect()
