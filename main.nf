@@ -154,9 +154,12 @@ workflow {
     // align each lane independently
     align(preprocess.out.lane_bams, ref_gnome, params.aligned_lane_prefix)
 
-    // // collect aligned lanes for merge and markdup
+    // collect aligned lanes for merge and markdup
     merge(align.out.aligned_file.collect(), ref_gnome, params.aligned_basename)
 
-    // // upload aligned file and metadata to song/score (A2)
-    upload(params.study_id, Channel.fromPath("./test-data/upload-song-payload.json"), merge.out.merged_bam)
+    // upload aligned file and metadata to song/score (A2)
+    // TODO: make A2 type with:
+    // work/69/69f25cb4344b7652b807adde4987c1/HCC1143.3.20190726.wgs.grch38.cram
+    // work/69/69f25cb4344b7652b807adde4987c1/HCC1143.3.20190726.wgs.grch38.cram.crai
+    upload(params.study_id, Channel.fromPath("./test-data/upload-song-payload.json"), merge.out.merged_bam.collect())
 }
