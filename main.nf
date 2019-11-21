@@ -124,19 +124,23 @@ merge_params = [
     *:(params.align ?: [:])
 ]
 
-// params.upload.container_version = 'latest'
-// params.upload.song_url = parms.song_url
-// params.upload.score_url = parms.score_url
-// params.upload.api_token = params.api_token
-// params.upload.cpus = params.cpu
-// params.upload.memory = params.memory
+upload_params = [
+    'song_container_version': 'latest',
+    'score_container_version': 'edge',
+    'song_url': params.song_url,
+    'score_url': params.score_url,
+    'api_token': params.api_token,
+    'cpus': params.cpus,
+    'mem': params.memory,
+    *:(params.download ?: [:])
+]
 
 // Include all modules and pass params
 include song_score_download as download from './data-processing/modules/song_score_download' params(download_params)                                                                             
 include preprocess from './dna-seq-processing/modules/seq_data_to_lane_bam' params(preprocess_params)
-include bwaMemAligner as align from './dna-seq-processing/modules/bwa_mem_aligner.nf' params(align_params)
-include bamMergeSortMarkdup as merge from './dna-seq-processing/modules/bam_merge_sort_markdup.nf' params(merge_params)
-// include songScoreUpload as upload from './data-processing/modules/song_score_upload' params(params.upload)
+include bwaMemAligner as align from './dna-seq-processing/modules/bwa_mem_aligner' params(align_params)
+include merge from './dna-seq-processing/modules/bam_merge_sort_markdup' params(merge_params)
+include song_score_upload as upload from './data-processing/modules/song_score_upload' params(upload_params)
 
 ref_gnome = Channel.fromPath("${params.reference_dir}/*").collect()
 
@@ -154,6 +158,5 @@ workflow {
     merge(align.out.aligned_file.collect(), ref_gnome, params.aligned_basename)
 
     // // upload aligned file and metadata to song/score (A2)
-    // download.out.analysis_json.view()
-    // upload(merge.out)
+    upload(params.study_id, Channel.fromPath("./test-data/upload-song-payload.json"), merge.out.merged_bam)
 }
