@@ -46,24 +46,27 @@ Preprocess Parameters (object):
 {
     container_version                   docker container version, defaults set below
     reads_max_discard_fraction          preprocess reads max discard function
-    cpus_preprocess                     cpus for process container, defaults to cpus parameter
-    memory_preprocess                   memory (MB) for process container, defaults to memory parameter
+    cpus                                cpus for preprocess container, defaults to cpus parameter
+    memory                              memory (MB) for preprocess container, defaults to memory parameter
 }
 
 Align Parameters (object):
 --align
 {
     container_version                   docker container version, defaults set below
-    cpus                                cpus for process container, defaults to cpus parameter
-    memory                              memory (MB) for process container, defaults to memory parameter
+    cpus                                cpus for align container, defaults to cpus parameter
+    memory                              memory (MB) for align container, defaults to memory parameter
 }
 
 Merge Parameters (object):
 --merge
 {
     container_version                   docker container version, defaults set below
-    cpus_merge                          cpus for process container, defaults to cpus parameter
-    memory_merge                        memory (MB) for process container, defaults to memory parameter
+    output_format                       options are ['cram', 'bam']
+    markdup                             TODO: write description
+    lossy                               TODO: write description
+    cpus                                cpus for merge container, defaults to cpus parameter
+    memory                              memory (MB) for merge container, defaults to memory parameter
 }
 
 Upload Parameters (object):
@@ -97,23 +100,29 @@ params.download = [
 ]
 
 params.preprocess = [
-    'container_version': '0.1.3',
+    'container_version': '0.1.5.0',
     'reads_max_discard_fraction': 0.05,
     'cpus': params.cpus,
     'mem': params.memory,
     *:(params.preprocess ?: [:])
 ]
 
-// params.align.container_version = '0.1.2'
-// params.align.cpus = params.cpu
-// params.align.memory = params.memory
+params.align = [
+    'container_version': '0.1.2',
+    'cpus': params.cpus,
+    'mem': params.memory,
+    *:(params.align ?: [:])
+]
 
-// params.merge.container_version = '0.1.3'
-// params.merge.output_format = ['cram'] // options are ['cram', 'bam']
-// params.merge.markdup = 'OPTIONAL_INPUT'
-// params.merge.lossy = 'OPTIONAL_INPUT'
-// params.merge.memory = params.memory
-// params.merge.cpus = params.cpu
+params.merge = [
+    'container_version': '0.1.4',
+    'output_format': ['cram'],
+    'markdup': 'OPTIONAL_INPUT',
+    'lossy': 'OPTIONAL_INPUT',
+    'cpus': params.cpus,
+    'mem': params.memory,
+    *:(params.align ?: [:])
+]
 
 // params.upload.container_version = 'latest'
 // params.upload.song_url = parms.song_url
@@ -125,8 +134,8 @@ params.preprocess = [
 // Include all modules and pass params
 include song_score_download as download from './data-processing/modules/song_score_download' params(params = params.download)                                                                             
 include preprocess from './dna-seq-processing/modules/seq_data_to_lane_bam' params(params.preprocess)
-// include bwaMemAligner as align from './dna-seq-processing/modules/bwa_mem_aligner.nf' params(params.align)
-// include bamMergeSortMarkdup as merge from './dna-seq-processing/modules/bam_merge_sort_markdup.nf' params(params.merge)
+include bwaMemAligner as align from './dna-seq-processing/modules/bwa_mem_aligner.nf' params(params.align)
+include bamMergeSortMarkdup as merge from './dna-seq-processing/modules/bam_merge_sort_markdup.nf' params(params.merge)
 // include songScoreUpload as upload from './data-processing/modules/song_score_upload' params(params.upload)
 
 ref_gnome = Channel.fromPath("${params.reference_dir}/*").collect()
@@ -136,16 +145,15 @@ workflow {
     download(params.study_id, params.analysis_id)
 
     // run files through preprocess step (split to lanes)
-    preprocess(download.out)
+    preprocess(download.out.analysis_json_and_files)
 
-    preprocess.out.view()
-
-    // // align each lane independently
-    // align(preprocess.out, ref_gnome, params.aligned_lane_prefix)
+    // align each lane independently
+    align(preprocess.out.lane_bams, ref_gnome, params.aligned_lane_prefix)
 
     // // collect aligned lanes for merge and markdup
-    // merge(align.out.collect(), ref_gnome, params.aligned_basename)
+    merge(align.out.aligned_file.collect(), ref_gnome, params.aligned_basename)
 
     // // upload aligned file and metadata to song/score (A2)
+    // download.out.analysis_json.view()
     // upload(merge.out)
 }
