@@ -136,11 +136,11 @@ upload_params = [
 ]
 
 // Include all modules and pass params
-include song_score_download as download from './data-processing/modules/song_score_download' params(download_params)                                                                             
-include preprocess from './dna-seq-processing/modules/seq_data_to_lane_bam' params(preprocess_params)
-include bwaMemAligner as align from './dna-seq-processing/modules/bwa_mem_aligner' params(align_params)
-include merge from './dna-seq-processing/modules/bam_merge_sort_markdup' params(merge_params)
-include song_score_upload as upload from './data-processing/modules/song_score_upload' params(upload_params)
+include songScoreDownload as download from './data-processing/workflow/song_score_download' params(download_params)                                                                             
+include preprocess from './dna-seq-processing/workflow/preprocess' params(preprocess_params)
+include bwaMemAligner as align from './dna-seq-processing/process/bwa_mem_aligner' params(align_params)
+include merge from './dna-seq-processing/workflow/merge' params(merge_params)
+include songScoreUpload as upload from './data-processing/workflow/song_score_upload' params(upload_params)
 
 ref_gnome = Channel.fromPath("${params.reference_dir}/*").collect()
 
@@ -158,8 +158,5 @@ workflow {
     merge(align.out.aligned_file.collect(), ref_gnome, params.aligned_basename)
 
     // upload aligned file and metadata to song/score (A2)
-    // TODO: make A2 type with:
-    // work/69/69f25cb4344b7652b807adde4987c1/HCC1143.3.20190726.wgs.grch38.cram
-    // work/69/69f25cb4344b7652b807adde4987c1/HCC1143.3.20190726.wgs.grch38.cram.crai
     upload(params.study_id, Channel.fromPath("./test-data/upload-song-payload.json"), merge.out.merged_bam.collect())
 }
