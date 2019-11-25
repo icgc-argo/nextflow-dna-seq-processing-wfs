@@ -25,6 +25,7 @@ Required Parameters (no default):
 
 General Parameters (with defaults):
 --reference_dir                         reference genome directory
+--a2_template_path                      A2 analysis template path 
 --aligned_lane_prefix                   prefix for alignment (defaults to "grch38-aligned")
 --cpus                                  cpus given to all process containers (default 1)
 --memory                                memory (MB) given to all process containers (default 1024)
@@ -84,6 +85,7 @@ Upload Parameters (object):
 */
 
 params.reference_dir = 'reference'
+params.a2_template_path = 'template/a2_template.json'
 params.aligned_lane_prefix = 'grch38-aligned'
 params.cpus = 1
 params.memory = 1024
@@ -124,6 +126,13 @@ merge_params = [
     *:(params.align ?: [:])
 ]
 
+a2_gen_params = [
+    'container_version': 'latest',
+    'cpus': params.cpus,
+    'mem': params.memory,
+    *:(params.a2_gen_params ?: [:])
+]
+
 upload_params = [
     'song_container_version': 'latest',
     'score_container_version': 'edge',
@@ -140,9 +149,11 @@ include songScoreDownload as download from './data-processing/workflow/song_scor
 include preprocess from './dna-seq-processing/workflow/preprocess' params(preprocess_params)
 include bwaMemAligner as align from './dna-seq-processing/process/bwa_mem_aligner' params(align_params)
 include merge from './dna-seq-processing/workflow/merge' params(merge_params)
+include a2PayloadGen from './data-processing/process/a2_payload_gen' params(a2_gen_params) 
 include songScoreUpload as upload from './data-processing/workflow/song_score_upload' params(upload_params)
 
 ref_gnome = Channel.fromPath("${params.reference_dir}/*").collect()
+a2_template = Channel.fromPath(params.a2_template_path)
 
 workflow {
     // download files and metadata from song/score (A1)
@@ -157,6 +168,9 @@ workflow {
     // collect aligned lanes for merge and markdup
     merge(align.out.aligned_file.collect(), ref_gnome, params.aligned_basename)
 
+    // generate A2 payload
+    a2PayloadGen(a2_template, download.out.analysis_json, merge.out.merged_bam.collect())
+
     // upload aligned file and metadata to song/score (A2)
-    upload(params.study_id, Channel.fromPath("./test-data/upload-song-payload.json"), merge.out.merged_bam.collect())
+    upload(params.study_id, a2PayloadGen.out.a2_analysis, merge.out.merged_bam.collect())
 }
