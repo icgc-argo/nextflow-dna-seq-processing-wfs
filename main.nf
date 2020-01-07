@@ -115,7 +115,7 @@ align_params = [
 ]
 
 merge_params = [
-    'container_version': '0.1.4',
+    'container_version': '0.1.4.1',
     'output_format': ['cram'],
     'markdup': 'OPTIONAL_INPUT',
     'lossy': 'OPTIONAL_INPUT',
@@ -125,7 +125,7 @@ merge_params = [
 ]
 
 sequencing_alignment_payload_gen_params = [
-    'container_version': 'payload-gen-dna-alignment.0.1.1.0',
+    'container_version': '0.1.1.0',
     'cpus': params.cpus,
     'mem': params.memory,
     *:(params.sequencing_alignment_payload_gen_params ?: [:])
