@@ -100,7 +100,7 @@ download_params = [
 ]
 
 preprocess_params = [
-    'container_version': '0.1.6.0',
+    'container_version': '0.1.7.0',
     'reads_max_discard_fraction': 0.05,
     'cpus': params.cpus,
     'mem': params.memory,
@@ -125,7 +125,7 @@ merge_params = [
 ]
 
 sequencing_alignment_payload_gen_params = [
-    'container_version': '0.1.1.0',
+    'container_version': '0.1.2.0',
     'cpus': params.cpus,
     'mem': params.memory,
     *:(params.sequencing_alignment_payload_gen_params ?: [:])
