@@ -101,7 +101,7 @@ download_params = [
 
 preprocess_params = [
     'container_version': '0.1.7.0',
-    'reads_max_discard_fraction': 0.05,
+    'reads_max_discard_fraction': 0.08,
     'cpus': params.cpus,
     'mem': params.memory,
     *:(params.preprocess ?: [:])
