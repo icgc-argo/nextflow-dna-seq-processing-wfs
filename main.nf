@@ -37,8 +37,11 @@ Download Parameters (object):
     song_url                            song url for download process (defaults to main song_url param)
     score_url                           score url for download process (defaults to main score_url param)
     api_token                           song/score API token for download process (defaults to main api_token param)
-    cpus                                cpus for process container, defaults to cpus parameter
-    memory                              memory (MB) for process container, defaults to memory parameter
+    song_cpu
+    song_mem
+    score_cpu
+    score_mem
+    score_transport_mem                 TODO: Description
 }
 
 Preprocess Parameters (object):
@@ -77,8 +80,13 @@ Upload Parameters (object):
     song_url                            song url for upload process (defaults to main song_url param)
     score_url                           score url for upload process (defaults to main score_url param)
     api_token                           song/score API token for upload process (defaults to main api_token param)
-    cpus                                cpus for process container, defaults to cpus parameter
-    memory                              memory (MB) for process container, defaults to memory parameter
+    song_cpu
+    song_mem
+    score_cpu
+    score_mem
+    score_transport_mem                 TODO: Description
+    extract_cpu
+    extract_mem
 }
 
 */
@@ -89,13 +97,11 @@ params.cpus = 1
 params.memory = 1024
 
 download_params = [
-    'song_container_version': 'latest',
-    'score_container_version': 'latest',
+    'song_container_version': '4.0.0',
+    'score_container_version': '3.0.1',
     'song_url': params.song_url,
     'score_url': params.score_url,
     'api_token': params.api_token,
-    'cpus': params.cpus,
-    'mem': params.memory,
     *:(params.download ?: [:])
 ]
 
@@ -132,13 +138,11 @@ sequencing_alignment_payload_gen_params = [
 ]
 
 upload_params = [
-    'song_container_version': 'latest',
-    'score_container_version': 'edge',
+    'song_container_version': '4.0.0',
+    'score_container_version': '3.0.1',
     'song_url': params.song_url,
     'score_url': params.score_url,
     'api_token': params.api_token,
-    'cpus': params.cpus,
-    'mem': params.memory,
     *:(params.upload ?: [:])
 ]
 
