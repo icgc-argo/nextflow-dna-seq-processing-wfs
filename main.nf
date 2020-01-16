@@ -50,7 +50,7 @@ Preprocess Parameters (object):
     container_version                   docker container version, defaults set below
     reads_max_discard_fraction          preprocess reads max discard function
     cpus                                cpus for preprocess container, defaults to cpus parameter
-    memory                              memory (MB) for preprocess container, defaults to memory parameter
+    mem                                 memory (MB) for preprocess container, defaults to memory parameter
 }
 
 Align Parameters (object):
@@ -58,7 +58,7 @@ Align Parameters (object):
 {
     container_version                   docker container version, defaults set below
     cpus                                cpus for align container, defaults to cpus parameter
-    memory                              memory (MB) for align container, defaults to memory parameter
+    mem                                 memory (MB) for align container, defaults to memory parameter
 }
 
 Merge Parameters (object):
@@ -69,7 +69,7 @@ Merge Parameters (object):
     markdup                             TODO: write description
     lossy                               TODO: write description
     cpus                                cpus for merge container, defaults to cpus parameter
-    memory                              memory (MB) for merge container, defaults to memory parameter
+    mem                                 memory (MB) for merge container, defaults to memory parameter
 }
 
 Upload Parameters (object):
@@ -93,8 +93,6 @@ Upload Parameters (object):
 
 params.reference_dir = 'reference'
 params.aligned_lane_prefix = 'grch38-aligned'
-params.cpus = 1
-params.memory = 1024
 
 download_params = [
     'song_container_version': '4.0.0',
@@ -108,15 +106,11 @@ download_params = [
 preprocess_params = [
     'container_version': '0.1.7.0',
     'reads_max_discard_fraction': 0.08,
-    'cpus': params.cpus,
-    'mem': params.memory,
     *:(params.preprocess ?: [:])
 ]
 
 align_params = [
     'container_version': '0.1.2',
-    'cpus': params.cpus,
-    'mem': params.memory,
     *:(params.align ?: [:])
 ]
 
@@ -125,16 +119,12 @@ merge_params = [
     'output_format': ['cram'],
     'markdup': 'OPTIONAL_INPUT',
     'lossy': 'OPTIONAL_INPUT',
-    'cpus': params.cpus,
-    'mem': params.memory,
     *:(params.merge ?: [:])
 ]
 
 sequencing_alignment_payload_gen_params = [
     'container_version': '0.1.2.0',
-    'cpus': params.cpus,
-    'mem': params.memory,
-    *:(params.sequencing_alignment_payload_gen_params ?: [:])
+    *:(params.sequencing_alignment_payload_gen ?: [:])
 ]
 
 upload_params = [

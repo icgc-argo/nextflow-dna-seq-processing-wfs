@@ -9,7 +9,10 @@
     "aligned_basename": "SOME.NAME",
     "download": {},
     "preprocess": {},
-    "align": {},
+    "align": {
+        "cpus": 32,
+        "mem": 32000
+    },
     "merge": {},
     "sequencing_alignment_payload_gen_params": {},
     "upload": {}
